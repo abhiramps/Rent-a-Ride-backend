@@ -88,9 +88,6 @@ const dummyData = [
     } catch (error) {
         console.error('Error inserting dummy data:', error);
     }
-    finally{
-        mongoose.disconnect();
-    }
   }
 
 //app product modal data fetching from db

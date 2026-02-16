@@ -13,7 +13,7 @@ export const adminAuth = async (req,res,next)=> {
     }
 }
 
-export const adminProfiile = async (req,res,next)=> {
+export const adminProfile = async (req,res,next)=> {
     try{
 
     }

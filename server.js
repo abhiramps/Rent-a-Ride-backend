@@ -3,7 +3,7 @@ import mongoose from "mongoose";
 import userRoute from "./routes/userRoute.js";
 import authRoute from "./routes/authRoute.js";
 import adminRoute from './routes/adminRoute.js'
-import vendorRoute from './routes/venderRoute.js'
+import vendorRoute from './routes/vendorRoute.js'
 import cors from 'cors'
 import cookieParser from "cookie-parser";
 import { cloudinaryConfig } from "./utils/cloudinaryConfig.js";

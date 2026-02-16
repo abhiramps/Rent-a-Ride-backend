@@ -2,7 +2,7 @@ import Vehicle from "../../models/vehicleModel.js";
 import { errorHandler } from "../../utils/error.js";
 
 //Vendor vehicle request
-export const fetchVendorVehilceRequests = async (req, res, next) => {
+export const fetchVendorVehicleRequests = async (req, res, next) => {
   try {
     const vendorRequests = await Vehicle.aggregate([
       {
