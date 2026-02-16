@@ -2,6 +2,7 @@ import User from "../models/userModel.js";
 import bcryptjs from "bcryptjs";
 import { errorHandler } from "../utils/error.js";
 import Jwt from "jsonwebtoken";
+import env from "../utils/env.js";
 
 const expireDate = new Date(Date.now() + 3600000);
 
@@ -45,7 +46,7 @@ export const refreshToken = async (req, res, next) => {
   }
 
   try {
-    const decoded = Jwt.verify(refreshToken, process.env.REFRESH_TOKEN);
+    const decoded = Jwt.verify(refreshToken, env.JWT_REFRESH_SECRET);
     const user = await User.findById(decoded.id);
 
     if (!user) return next(errorHandler(403, "Invalid refresh token"));
@@ -56,12 +57,12 @@ export const refreshToken = async (req, res, next) => {
 
     const newAccessToken = Jwt.sign(
       { id: user._id },
-      process.env.ACCESS_TOKEN,
+      env.JWT_ACCESS_SECRET,
       { expiresIn: "15m" }
     );
     const newRefreshToken = Jwt.sign(
       { id: user._id },
-      process.env.REFRESH_TOKEN,
+      env.JWT_REFRESH_SECRET,
       { expiresIn: "7d" }
     );
 
@@ -99,10 +100,10 @@ export const signIn = async (req, res, next) => {
     if (!validPassword) return next(errorHandler(401, "wrong credentials"));
     let accessToken = "";
     let refreshToken = "";
-    accessToken = Jwt.sign({ id: validUser._id }, process.env.ACCESS_TOKEN, {
+    accessToken = Jwt.sign({ id: validUser._id }, env.JWT_ACCESS_SECRET, {
       expiresIn: "15m",
     }); //accessToken expires in 15 minutes
-    refreshToken = Jwt.sign({ id: validUser._id }, process.env.REFRESH_TOKEN, {
+    refreshToken = Jwt.sign({ id: validUser._id }, env.JWT_REFRESH_SECRET, {
       expiresIn: "7d",
     }); //refreshToken expires in 7 days
 
@@ -163,7 +164,7 @@ export const google = async (req, res, next) => {
     }
     if (user) {
       const { password: hashedPassword, ...rest } = user;
-      const token = Jwt.sign({ id: user._id }, process.env.ACCESS_TOKEN);
+      const token = Jwt.sign({ id: user._id }, env.JWT_ACCESS_SECRET);
 
       res
         .cookie("access_token", token, {
@@ -194,7 +195,7 @@ export const google = async (req, res, next) => {
       const savedUser = await newUser.save();
       const userObject = savedUser.toObject();
 
-      const token = Jwt.sign({ id: newUser._id }, process.env.ACCESS_TOKEN);
+      const token = Jwt.sign({ id: newUser._id }, env.JWT_ACCESS_SECRET);
       const { password: hashedPassword2, ...rest } = userObject;
       res
         .cookie("access_token", token, {

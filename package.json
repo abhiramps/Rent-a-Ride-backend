@@ -1,12 +1,12 @@
 {
-  "name": "rent-a-drive",
+  "name": "rent-a-drive-backend",
   "version": "1.0.0",
   "description": "",
   "main": "server.js",
   "type": "module",
   "scripts": {
-    "dev": "nodemon backend/server.js",
-    "start": "node backend/server.js "
+    "dev": "nodemon server.js",
+    "start": "node server.js "
   },
   "keywords": [],
   "author": "",

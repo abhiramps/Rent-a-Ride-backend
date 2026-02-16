@@ -1,6 +1,5 @@
 import express from "express";
 import mongoose from "mongoose";
-import dotenv from "dotenv";
 import userRoute from "./routes/userRoute.js";
 import authRoute from "./routes/authRoute.js";
 import adminRoute from './routes/adminRoute.js'
@@ -8,6 +7,7 @@ import vendorRoute from './routes/venderRoute.js'
 import cors from 'cors'
 import cookieParser from "cookie-parser";
 import { cloudinaryConfig } from "./utils/cloudinaryConfig.js";
+import env from "./utils/env.js";
 
 
 const App = express();
@@ -17,11 +17,10 @@ App.use(express.json());
 App.use(cookieParser())
 
 
-dotenv.config();
 const port = 3000;
 
 mongoose
-  .connect(process.env.mongo_uri)
+  .connect(env.MONGO_URI)
   .then(console.log("connected"))
   .catch((error) => console.error(error));
 

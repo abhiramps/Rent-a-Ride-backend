@@ -5,6 +5,7 @@ import Razorpay from "razorpay";
 import { availableAtDate } from "../../services/checkAvailableVehicle.js";
 import Vehicle from "../../models/vehicleModel.js";
 import nodemailer from "nodemailer";
+import env from "../../utils/env.js";
 
 export const BookCar = async (req, res, next) => {
   try {
@@ -71,8 +72,8 @@ export const razorpayOrder = async (req, res, next) => {
       return next(errorHandler(400, "Missing Required Feilds Process Cancelled")) ;
     }
     const instance = new Razorpay({
-      key_id: process.env.RAZORPAY_KEY_ID,
-      key_secret: process.env.RAZORPAY_SECRET,
+      key_id: env.RAZORPAY_KEY_ID,
+      key_secret: env.RAZORPAY_SECRET,
     });
 
     const options = {
@@ -385,8 +386,8 @@ export const sendBookingDetailsEamil = (req, res, next) => {
     var transporter = nodemailer.createTransport({
       service: "gmail",
       auth: {
-        user: process.env.EMAIL_HOST,
-        pass: process.env.EMAIL_PASSWORD,
+        user: env.EMAIL_HOST,
+        pass: env.EMAIL_PASSWORD,
       },
     });
 
@@ -433,7 +434,7 @@ export const sendBookingDetailsEamil = (req, res, next) => {
     };
 
     var mailOptions = {
-      from: process.env.EMAIL_HOST,
+      from: env.EMAIL_HOST,
       to: toEmail,
       subject: "rentaride.shop booking details",
       html: generateEmailHtml(data[0].bookingDetails, data[0].vehicleDetails),

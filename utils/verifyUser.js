@@ -1,7 +1,7 @@
 import jwt from "jsonwebtoken";
 import { errorHandler } from "./error.js";
 import User from "../models/userModel.js";
-import { refreshToken } from "../controllers/authController.js";
+import env from "./env.js";
 
 export const verifyToken = async (req, res, next) => {
   // const accessToken = req.cookies.access_token;
@@ -20,7 +20,7 @@ export const verifyToken = async (req, res, next) => {
     }
 
     try {
-      const decoded = jwt.verify(refreshToken, process.env.REFRESH_TOKEN);
+      const decoded = jwt.verify(refreshToken, env.JWT_REFRESH_SECRET);
       const user = await User.findById(decoded.id);
 
       if (!user) return next(errorHandler(403, "Invalid refresh token"));
@@ -30,12 +30,12 @@ export const verifyToken = async (req, res, next) => {
 
       const newAccessToken = jwt.sign(
         { id: user._id },
-        process.env.ACCESS_TOKEN,
+        env.JWT_ACCESS_SECRET,
         { expiresIn: "15m" }
       );
       const newRefreshToken = jwt.sign(
         { id: user._id },
-        process.env.REFRESH_TOKEN,
+        env.JWT_REFRESH_SECRET,
         { expiresIn: "7d" }
       );
 
@@ -53,7 +53,7 @@ export const verifyToken = async (req, res, next) => {
     }
   } else {
     try {
-      const decoded = jwt.verify(accessToken, process.env.ACCESS_TOKEN);
+      const decoded = jwt.verify(accessToken, env.JWT_ACCESS_SECRET);
       req.user = decoded.id; //setting req.user so that next middleware in this cycle can acess it
       next();
     } catch (error) {
