@@ -1,5 +1,4 @@
 import { errorHandler } from "../../utils/error.js";
-import vehicle from "../../models/vehicleModel.js";
 import Vehicle from "../../models/vehicleModel.js";
 
 import { uploader } from "../../utils/cloudinaryConfig.js";
@@ -60,7 +59,7 @@ export const addProduct = async (req, res, next) => {
 
       try {
         if (uploadedImages && uploadedImages) {
-          const addVehicle = new vehicle({
+          const addVehicle = new Vehicle({
             registeration_number,
             company,
             name,
@@ -111,7 +110,7 @@ export const addProduct = async (req, res, next) => {
 //show all vehicles to admin
 export const showVehicles = async (req, res, next) => {
   try {
-    const vehicles = await vehicle.find();
+    const vehicles = await Vehicle.find();
 
     if (!vehicles) {
       return next(errorHandler(404, "no vehicles found"));

@@ -12,4 +12,5 @@ export const cloudinaryConfig = (req, res, next) => {
   next();
 };
 
-export { cloudinary };
+const uploader = cloudinary.uploader;
+export { cloudinary, uploader };

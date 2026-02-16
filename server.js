@@ -56,6 +56,11 @@ App.use("/api/vendor",vendorRoute)
 App.use((err, req, res, next) => {
   const statusCode = err.statusCode || 500;
   const message = err.message || "internal server error";
+  
+  // Log the error to the console for debugging
+  console.error(`[Error] ${statusCode} - ${message}`);
+  if (err.stack) console.error(err.stack);
+
   return res.status(statusCode).json({
     succes: false,
     message,
