@@ -6,11 +6,12 @@ import { availableAtDate } from "../../services/checkAvailableVehicle.js";
 import Vehicle from "../../models/vehicleModel.js";
 import nodemailer from "nodemailer";
 import env from "../../utils/env.js";
+import crypto from "crypto";
 
 export const BookCar = async (req, res, next) => {
   try {
     if (!req.body) {
-      next(errorHandler(401, "bad request on body"));
+      return next(errorHandler(401, "bad request on body"));
     }
 
     const {
@@ -24,7 +25,17 @@ export const BookCar = async (req, res, next) => {
       pickup_district,
       razorpayPaymentId,
       razorpayOrderId,
+      razorpaySignature,
     } = req.body;
+
+    // Verify signature
+    const shasum = crypto.createHmac("sha256", env.RAZORPAY_SECRET);
+    shasum.update(`${razorpayOrderId}|${razorpayPaymentId}`);
+    const digest = shasum.digest("hex");
+
+    if (digest !== razorpaySignature) {
+      return next(errorHandler(400, "Transaction not legitimate!"));
+    }
 
     const book = new Booking({
       pickupDate,
@@ -39,10 +50,6 @@ export const BookCar = async (req, res, next) => {
       razorpayOrderId,
       status: "booked",
     });
-    if (!book) {
-      console.log("not booked");
-      return;
-    }
 
     const booked = await book.save();
     res.status(200).json({
@@ -55,21 +62,43 @@ export const BookCar = async (req, res, next) => {
   }
 };
 
+// Webhook for Razorpay
+export const verifyPaymentWebhook = async (req, res, next) => {
+  try {
+    const secret = env.RAZORPAY_SECRET; // Or a separate WEBHOOK_SECRET if configured in Razorpay dashboard
+
+    const shasum = crypto.createHmac("sha256", secret);
+    shasum.update(JSON.stringify(req.body));
+    const digest = shasum.digest("hex");
+
+    if (digest === req.headers["x-razorpay-signature"]) {
+      console.log("Request is legitimate");
+      // Handle events here (e.g., payment.captured)
+      // Note: Full webhook implementation requires mapping payment metadata to booking details
+      // Since your current frontend flow handles the DB save, this is primarily for audit/failsafe.
+      res.status(200).json({ status: "ok" });
+    } else {
+      res.status(403).json({ status: "invalid signature" });
+    }
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+};
+
 //createing razorpay instance
 export const razorpayOrder = async (req, res, next) => {
   try {
     const { totalPrice, dropoff_location, pickup_district, pickup_location } =
       req.body;
 
-    console.log(totalPrice)
     if (
       !totalPrice ||
       !dropoff_location ||
       !pickup_district ||
       !pickup_location
     ) {
-
-      return next(errorHandler(400, "Missing Required Feilds Process Cancelled")) ;
+      return next(errorHandler(400, "Missing Required Fields Process Cancelled"));
     }
     const instance = new Razorpay({
       key_id: env.RAZORPAY_KEY_ID,
@@ -137,8 +166,6 @@ export const getVehiclesWithoutBooking = async (req, res, next) => {
 
     // If there is no next middleware after this one, send the response
     if (!req.route || !req.route.stack || req.route.stack.length === 1) {
-      console.log("hello");
-      console.log({ success: "true", data: availableVehicles });
       return res.status(200).json({
         success: true,
         data: availableVehicles,
@@ -320,7 +347,6 @@ export const findBookingsOfUser = async (req, res, next) => {
 export const latestbookings = async (req, res, next) => {
   try {
     const { user_id } = req.body;
-    console.log(user_id);
     const convertedUserId = new mongoose.Types.ObjectId(user_id);
 
     const bookings = await Booking.aggregate([
@@ -348,18 +374,12 @@ export const latestbookings = async (req, res, next) => {
       },
       {
         $sort:
-          /**
-           * Provide any number of field/order pairs.
-           */
           {
             "bookingDetails.createdAt": -1,
           },
       },
       {
         $limit:
-          /**
-           * Provide the number of documents to limit.
-           */
           1,
       },
     ]);
@@ -378,10 +398,7 @@ export const latestbookings = async (req, res, next) => {
 //send booking details to user email
 export const sendBookingDetailsEamil = (req, res, next) => {
   try {
-    console.log("hello");
     const { toEmail, data } = req.body;
-    console.log("hi");
-    console.log(req.body);
 
     var transporter = nodemailer.createTransport({
       service: "gmail",
@@ -444,7 +461,6 @@ export const sendBookingDetailsEamil = (req, res, next) => {
       if (error) {
         console.log(error);
       } else {
-        console.log("Email sent: " + info.response);
         res.status(200).json("Email sent successfully");
       }
     });
